@@ -1,0 +1,131 @@
+name: Backlog Issue Import
+
+on:
+  workflow_dispatch:
+    inputs:
+      backlog_file:
+        description: Path to the backlog markdown file
+        required: true
+        default: backlog/phase1_issue_pack.md
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Create issues from backlog
+        uses: actions/github-script@v7
+        env:
+          BACKLOG_FILE: ${{ github.event.inputs.backlog_file || 'backlog/phase1_issue_pack.md' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            const backlogPath = process.env.BACKLOG_FILE;
+            if (!fs.existsSync(backlogPath)) {
+              core.setFailed(`Backlog file not found: ${backlogPath}`);
+              throw new Error(`Missing backlog file at ${backlogPath}`);
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const content = fs.readFileSync(backlogPath, 'utf8');
+            const lines = content.split(/\r?\n/);
+
+            const headingRegex = /^\s*(#{2,4})\s+.*\[(P1-[^\]]+)\]\s*(.+)$/;
+
+            const sections = [];
+            for (let i = 0; i < lines.length; i++) {
+              const match = lines[i].match(headingRegex);
+              if (!match) continue;
+              const start = i;
+              let end = lines.length;
+              for (let j = i + 1; j < lines.length; j++) {
+                if (lines[j].match(headingRegex)) {
+                  end = j;
+                  break;
+                }
+              }
+              const bodyLines = lines.slice(start, end);
+              const titleText = lines[start].replace(/^#{2,4}\s+/, '').trim();
+              sections.push({
+                title: titleText,
+                body: bodyLines.join('\n').trim()
+              });
+            }
+
+            if (!sections.length) {
+              core.setFailed('No issues found in backlog file.');
+              throw new Error('No issue sections detected in backlog file.');
+            }
+
+            const extractLabels = (body) => {
+              const match = body.match(/\*\*Labels\*\*:\s*([^\n]+)/);
+              if (!match) return [];
+              return match[1]
+                .replace(/[`*]/g, '')
+                .split(',')
+                .map((label) => label.trim())
+                .filter(Boolean);
+            };
+
+            const extractMilestone = (body) => {
+              const match = body.match(/\*\*Milestone\*\*:\s*`?([^`\n]+)`?/);
+              return match ? match[1].trim() : null;
+            };
+
+            const findOrCreateMilestone = async (title) => {
+              const milestones = await github.paginate(github.rest.issues.listMilestones, {
+                owner,
+                repo,
+                state: 'all',
+                per_page: 100
+              });
+              const existing = milestones.find((m) => m.title === title);
+              if (existing) return existing.number;
+              const created = await github.rest.issues.createMilestone({
+                owner,
+                repo,
+                title
+              });
+              return created.data.number;
+            };
+
+            const existingIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'all',
+              per_page: 100
+            });
+
+            for (const section of sections) {
+              const labels = extractLabels(section.body);
+              const milestoneName = extractMilestone(section.body);
+              let milestoneNumber = undefined;
+              if (milestoneName) {
+                milestoneNumber = await findOrCreateMilestone(milestoneName);
+              }
+
+              const already = existingIssues.find((issue) => issue.title === section.title);
+              if (already) {
+                core.info(`Skipping existing issue: ${section.title}`);
+                continue;
+              }
+
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title: section.title,
+                body: section.body,
+                labels,
+                milestone: milestoneNumber
+              });
+              core.info(`Created issue: ${section.title}`);
+            }
