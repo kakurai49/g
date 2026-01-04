@@ -7,8 +7,11 @@ on:
       - main
 
 jobs:
-  build:
+  python-ci:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,12 +23,38 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
+          pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Lint
-        run: ruff check apps/api
+      - name: Ruff check
+        run: ruff check .
 
-      - name: Test
+      - name: Pytest with coverage
         env:
-          PYTHONPATH: apps/api
-        run: pytest -q
+          PYTHONPATH: ${{ github.workspace }}/apps/api
+        run: pytest -q --cov=app --cov-report=term-missing --cov-fail-under=85
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    needs: python-ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          docker build -t g-api-test --build-arg GIT_SHA=${{ github.sha }} --build-arg BUILD_TIME=${{ github.run_id }} apps/api
+
+      - name: Run container
+        run: |
+          docker run -d -p 18080:8080 --name g-api-test g-api-test
+
+      - name: Health check
+        run: |
+          curl -s -o /tmp/health http://localhost:18080/health
+          grep '"status":"ok"' /tmp/health
+          curl -sSf http://localhost:18080/version >/tmp/version
+          curl -sSf http://localhost:18080/dev >/tmp/dev
+
+      - name: Stop container
+        if: always()
+        run: docker rm -f g-api-test

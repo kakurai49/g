@@ -1,9 +1,9 @@
-# Architecture (Phase1)
+# アーキテクチャ（Phase1 / S1）
 
-- **W (Why):** Build a minimal, iPhone-first MVP for the G theory learning system that exposes clear observability points.
-- **E (End state):** `/health`, `/version`, and `/dev` are reachable after deploy; `/dev` renders in iPhone Safari and surfaces `/health` data.
-- **S (Scope):** FastAPI single service, containerized for docker-compose; no database yet, but keep room for future data/RAG integration.
-- **A (Approach):** Start with a single FastAPI app exposing JSON endpoints and a lightweight HTML Dev Portal that fetches `/health`. Keep dependencies minimal.
-- **S (Signals):** `/dev` shows the health JSON and version on iPhone; CI (ruff + pytest) passes on PRs.
+- **W (Why):** ローカル環境を使わずに、iPhone Safari からサービスの健全性を即確認できる観測点を用意する。
+- **E (End state):** デプロイ後に `/health` `/version` `/dev` へ到達でき、`/dev` でヘルスとバージョンの JSON が表示される。
+- **S (Scope):** 単一 FastAPI サービス（apps/api）を Docker/Compose で提供。データ層は未導入だが将来拡張できる構成を維持。
+- **A (Approach):** JSON エンドポイント + 静的 Dev Portal を FastAPI で提供し、CI（lint/test/coverage + docker smoke）と GHCR ビルド、SSH ベースの任意デプロイを自動化。
+- **S (Signals):** iPhone で `/dev` にアクセスすると `/health` `/version` がライブ表示されること、CI が ruff + pytest + docker smoke でグリーン、GHCR に `latest` と `sha-*` が公開、secrets 無しの環境でデプロイが安全に skip されること。
 
-Phase1の最優先は iPhone で観測できる `/dev` を作ること。ここを S1 の観測点とする。
+Phase1 ではまず `/dev` を観測点として整備し、その周辺に CI/CD を敷設することで毎回 iPhone からの確認を可能にする。

@@ -1,26 +1,28 @@
-import sys
-from pathlib import Path
+from __future__ import annotations
 
-from fastapi.testclient import TestClient
+from datetime import datetime
 
-APP_DIR = Path(__file__).resolve().parents[1]
-if str(APP_DIR) not in sys.path:
-    sys.path.insert(0, str(APP_DIR))
-
-from app.main import app  # noqa: E402
+from app.settings import reset_settings_cache
 
 
-client = TestClient(app)
-
-
-def test_health_returns_status_ok():
+def test_health_returns_status_and_checks(client):
     response = client.get("/health")
     assert response.status_code == 200
-    payload = response.json()
-    assert "status" in payload
+    data = response.json()
+
+    assert data["status"] == "ok"
+    assert data["service"] == "g"
+    assert data["checks"]["app"] == "ok"
+    assert data["version"] == "unknown"
+
+    parsed_time = datetime.fromisoformat(data["time"])
+    assert parsed_time.tzinfo is not None
 
 
-def test_dev_endpoint_serves_html():
-    response = client.get("/dev")
+def test_health_uses_git_sha_from_env(client, monkeypatch):
+    monkeypatch.setenv("GIT_SHA", "abc123")
+    reset_settings_cache()
+
+    response = client.get("/health")
     assert response.status_code == 200
-    assert "Dev Portal" in response.text
+    assert response.json()["version"] == "abc123"
