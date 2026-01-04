@@ -1,24 +1,34 @@
 # g
 
-G理論学習システムのiPhone-firstなMVP。まずは FastAPI 単体で `/health` `/version` `/dev` を提供し、デプロイ後に iPhone Safari から疎通確認できることを目指します。
+iPhone-first な FastAPI MVP。デプロイ後は iPhone Safari から `/dev` を開き、`/health` `/version` の結果を確認することを前提としています。
 
 ## エンドポイント
-- `GET /health`: サービス状態とバージョンを返すJSON。
-- `GET /version`: バージョンのみを返すJSON。
-- `GET /dev`: Dev Portal。ブラウザ上で `/health` を fetch して結果とバージョンを表示。
+- `GET /health` — `{ status, service, version, time, checks }`（UTC ISO8601）
+- `GET /version` — `{ service, version, build_time? }`
+- `GET /dev` — Dev Portal（内部で `/health` `/version` を fetch し画面表示）
+- `GET /` — `/dev` へリダイレクト
 
-## 動かし方（サーバ / ローカル）
-1. `.env` を `.env.example` を参考に用意する（最低限 `GIT_SHA` と `PORT`）。
-2. `docker compose up` を実行する。
-3. `http://localhost:8080/dev` にアクセスして `/health` の結果が見えることを確認。
+## クイックスタート（ローカル／サーバ）
+1. `.env.example` をコピーして `.env` を用意（最低でも `GIT_SHA` `PORT` `APP_ENV` を設定）。
+2. `docker compose up --build` を実行。
+3. ブラウザで `http://localhost:8080/dev` を開き、health/version が表示されることを確認。
 
-## iPhoneでの確認方法
-- サーバにデプロイ後、iPhone Safari で `https://<domain>/dev` を開く。
-- 画面上に "Dev Portal" と `/health` のレスポンス、バージョンが表示されていることを確認。
+## iPhone 確認手順
+- デプロイ後、iPhone Safari で `https://<domain>/dev` を開く。
+- 画面に "Dev Portal" が表示され、`/health` `/version` の JSON が描画されていることを確認。
+- エラー表示が無いことを確認。
 
-## 環境変数
-- `GIT_SHA`: デプロイ時のコミットSHA。未設定の場合は `unknown` として表示されます。
+## GitHub Actions
+- `ci.yml`: ruff + pytest（coverage >= 85%）+ docker smoke テスト。
+- `docker.yml`: GHCR へ `latest` と `sha-<commit>` タグでイメージを build/push。
+- `deploy.yml`: サーバへ SSH で compose pull/up を実行（secrets 未設定時は安全に skip）。
 
-## 開発メモ
-- 依存は FastAPI + uvicorn のみ（開発用に pytest/httpx/ruff）。
-- CI では `ruff check` と `pytest` を実行します。
+## デプロイ（サーバ）
+- `deploy/docker-compose.server.yml` をサーバに配置し、GHCR イメージで起動。
+- HTTPS が必要な場合は `deploy/Caddyfile` を参考にリバースプロキシを構成。
+- 詳細手順・環境変数やシークレットの扱いは `deploy/README.md` と `docs/operations.md` を参照。
+
+## 追加ドキュメント
+- `docs/architecture.md`: W/E/S/A(S) 観点の設計メモ（日本語）
+- `docs/operations.md`: 環境変数・シークレット・デプロイ運用（日本語）
+- `docs/usage.md`: 全体の使い方・運用フローまとめ（日本語）

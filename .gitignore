@@ -17,6 +17,7 @@ dist/
 
 # Pytest
 .pytest_cache/
+.coverage
 
 # IDE/editor
 .vscode/
