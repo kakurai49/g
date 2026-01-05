@@ -77,3 +77,31 @@ Docker ホストの指定を `DOCKER_CONTEXT` 環境変数に集約するため�
 - **`hello-world` が失敗する**: `sudo systemctl status docker` でデーモン稼働を確認し、`sudo systemctl restart docker` で再起動を試す。
 - **`./scripts/compose.sh` がリモートを掴まない**: `DOCKER_CONTEXT` が意図通りか `echo $DOCKER_CONTEXT` で確認し、`docker context ls` で登録状況を確認する。
 - **アプリが外部から見えない**: `docker-compose.yml` のポート (`8080:8080`) を確認し、iPhone が同一ネットワークにいるかチェックする。
+
+### 実際に解消した手順メモ（daemon/socket への接続権限）
+以下の流れで `permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock` を解消できた実績があります。
+
+1. デーモンが停止している場合があるため、まず起動する  
+   ```bash
+   sudo systemctl start docker
+   ```
+2. sudo なしで使いたいユーザーを `docker` グループに追加する  
+   ```bash
+   sudo usermod -aG docker "$USER"
+   ```
+3. グループを反映するため新しいログインセッションを開始する（`newgrp docker` でも可）
+4. グループに入ったことを確認する  
+   ```bash
+   id   # groups に docker が含まれることを確認
+   ```
+5. 権限が反映された状態で疎通を確認する  
+   ```bash
+   docker ps
+   ```
+   ソケットの所有者が `root:docker` でパーミッション `srw-rw----` になっていることも `ls -l /var/run/docker.sock` で確認すると安心です。必要に応じて `sudo systemctl restart docker` で再起動して反映させます。
+
+### 再起動後も Docker を自動起動させる
+PC を再起動した際に Docker デーモンが自動で立ち上がるよう、`enable` を設定しておくと便利です。
+```bash
+sudo systemctl enable docker
+```
