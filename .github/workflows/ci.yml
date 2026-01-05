@@ -55,14 +55,14 @@ jobs:
 
       - name: Run container
         run: |
-          docker run -d -p 18080:8080 --name g-api-test g-api-test
+          docker run -d -p 8080:8080 --name g-api-test g-api-test
 
       - name: Health check
         run: |
-          curl -s -o /tmp/health http://localhost:18080/health
+          curl -s -o /tmp/health http://localhost:8080/health
           grep '"status":"ok"' /tmp/health
-          curl -sSf http://localhost:18080/version >/tmp/version
-          curl -sSf http://localhost:18080/dev >/tmp/dev
+          curl -sSf http://localhost:8080/version >/tmp/version
+          curl -sSf http://localhost:8080/dev >/tmp/dev
 
       - name: Stop container
         if: always()
