@@ -6,6 +6,8 @@ Phase1/S1 の iPhone-first ワークフローで、ローカルセットアッ�
 - Docker / Docker Compose が利用できること
 - Python 実行環境は不要（テスト実行時のみ必要）
 - デプロイ確認は iPhone Safari から行う
+- ローカル開発環境のセットアップは `docs/local-dev-ubuntu24-docker.md` を参照（Ubuntu 24.04 向け）
+- 将来の Docker ホスト差し替え運用は `docs/docker-host-portability.md` を参照
 
 ## 2. リポジトリ構成（抜粋）
 ```
@@ -25,12 +27,15 @@ deploy/           # サーバ用 compose/Caddy テンプレ + 手順
    - `PORT`（デフォルト 8080）
    - `APP_ENV`（`dev` / `prod` など表示用）
    - `BUILD_TIME`（任意。`/version` に表示）
+> `.env` はリポジトリにコミットしないでください（`.gitignore` に登録済み）。
 
 ## 4. ローカル実行
 ```bash
 docker compose up --build
 ```
 ブラウザで `http://localhost:8080/dev` を開き、Health/Version が表示されることを確認。
+
+`DOCKER_CONTEXT` で Docker ホストを切り替える場合は、`./scripts/compose.sh` ラッパー経由で起動してください。詳細は `docs/docker-host-portability.md` を参照。
 
 ## 5. iPhone での確認
 1. デプロイ環境の `https://<domain>/dev` を iPhone Safari で開く。

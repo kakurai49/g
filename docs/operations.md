@@ -1,5 +1,7 @@
 # オペレーション（Phase1 / S1）
 
+ローカル環境セットアップ（Ubuntu 24.04）や Docker ホスト差し替えの設計は `docs/local-dev-ubuntu24-docker.md` と `docs/docker-host-portability.md` を参照してください。
+
 ## 環境変数
 - `PORT`（既定: 8080）— API の待受ポート
 - `GIT_SHA`（既定: `unknown`）— `/health` と `/version` に表示するコミット SHA
@@ -7,6 +9,7 @@
 - `APP_ENV`（既定: `dev`）— `/dev` に表示する環境ラベル
 
 `.env.example` を雛形として `.env` を用意し、秘密情報はコミットしない。実行時 `.env` は compose ファイルと同じディレクトリに置く。
+> `.env` は Git に含めないでください（`.gitignore` 済み）。必要に応じて `.env.example` をコピーして編集します。
 
 ## GitHub Secrets / Variables
 - 必須: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`
