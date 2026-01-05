@@ -59,10 +59,11 @@ jobs:
 
       - name: Health check
         run: |
-          curl -s -o /tmp/health http://localhost:8080/health
+          RETRY_FLAGS="--fail --silent --show-error --retry 5 --retry-delay 2 --retry-all-errors"
+          curl $RETRY_FLAGS -o /tmp/health http://localhost:8080/health
           grep '"status":"ok"' /tmp/health
-          curl -sSf http://localhost:8080/version >/tmp/version
-          curl -sSf http://localhost:8080/dev >/tmp/dev
+          curl $RETRY_FLAGS http://localhost:8080/version >/tmp/version
+          curl $RETRY_FLAGS http://localhost:8080/dev >/tmp/dev
 
       - name: Stop container
         if: always()
