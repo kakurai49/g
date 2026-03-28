@@ -17,3 +17,8 @@
 - `make test` initially failed with missing `httpx` in the active Python environment.
 - Failure category applied: `environment_or_setup_issue`.
 - Resolution used stop-and-fix: installed `apps/api` dependencies, then reran all required validations successfully.
+
+## Latest loop notes (2026-03-28 translation update)
+- Translated `AGENTS.md`, `PLANS.md`, and `Plan.md` into Japanese while preserving loop structure.
+- `make test` failed once due to missing `httpx`; categorized as `environment_or_setup_issue`.
+- Applied stop-and-fix by installing `apps/api` dependencies and reran required validations successfully.
