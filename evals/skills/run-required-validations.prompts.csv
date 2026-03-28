@@ -1,0 +1,3 @@
+prompt,expected
+"Run the repository's required loop validations and summarize pass/fail with rerun guidance.","Runs 3 required commands, classifies failures, records rerun/defer decision."
+"A PR touched AGENTS.md. What exact validation routine must be executed before merge?","Includes make test, compileall from apps/api, and make loop-check with logged outcomes."
