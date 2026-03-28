@@ -12,3 +12,8 @@
 - `make test`
 - `python -m compileall -q app charaname_studio tests` (run in `apps/api`)
 - `make loop-check`
+
+## Latest loop notes (2026-03-28 due diligence)
+- `make test` initially failed with missing `httpx` in the active Python environment.
+- Failure category applied: `environment_or_setup_issue`.
+- Resolution used stop-and-fix: installed `apps/api` dependencies, then reran all required validations successfully.
