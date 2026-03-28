@@ -57,3 +57,29 @@
 - Promote judgment: promote
 - Reason:
   - 調査観点と検証手順が定型化でき、再現性の高い監査プロセスとして使えるため。
+
+## 2026-03-28 — core loop documents Japanese translation
+- Trigger / 課題:
+  - ユーザー要求により `AGENTS.md` / `PLANS.md` / `Plan.md` を日本語化する必要があった。
+- Effective workflow / 有効だった手順:
+  1. 3ファイルの構造を維持したまま逐次翻訳。
+  2. 用語（Goal/Non-goals/Milestones など）は既存運用との互換性を優先して必要箇所を英語のまま維持。
+  3. required validations を実行し、環境エラー発生時は stop-and-fix で依存を補完して再実行。
+- Commands used:
+  - `make test`
+  - `python -m pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt`
+  - `cd apps/api && python -m compileall -q app charaname_studio tests`
+  - `make loop-check`
+- Inputs / Outputs:
+  - Input: 既存英語ベースのループ運用ドキュメント。
+  - Output: 日本語化された 3 ファイル + 検証ログ更新。
+- Success criteria:
+  - 対象3ファイルが日本語として読める。
+  - required validations 3件が最終的に成功。
+- Failure modes:
+  - 開発環境依存（`httpx` 未導入）で `make test` が失敗。
+- Reuse signals:
+  - 将来の多言語ドキュメント整備 PR で同手順を再利用可能。
+- Promote judgment: promote
+- Reason:
+  - 翻訳作業でもループ規約（検証・ログ）を崩さず適用できることを確認できたため。
