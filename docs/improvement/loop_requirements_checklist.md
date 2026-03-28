@@ -22,3 +22,8 @@
 - Translated `AGENTS.md`, `PLANS.md`, and `Plan.md` into Japanese while preserving loop structure.
 - `make test` failed once due to missing `httpx`; categorized as `environment_or_setup_issue`.
 - Applied stop-and-fix by installing `apps/api` dependencies and reran required validations successfully.
+
+## Latest loop notes (2026-03-28 deep due diligence persistence)
+- Saved deep technical due diligence report to `docs/diagnosis/deep_technical_due_diligence_2026-03-28.md` using the requested #1-#11 structure.
+- `make test` failed once due to missing `httpx`; categorized as `environment_or_setup_issue`.
+- Applied stop-and-fix (`pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt`) and reran all required validations successfully.

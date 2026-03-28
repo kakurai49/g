@@ -46,6 +46,18 @@
   - `make loop-check`
 - Status: done
 
+
+### M5. 深掘りデューデリジェンス結果の永続化
+- Acceptance criteria:
+  - 指定フォーマット（#1〜#11）に準拠した技術デューデリジェンス報告を `docs/diagnosis/` 配下へ保存。
+  - 主要結論ごとに evidence classification（code/config/docs/inferred/uncertain）を明記。
+  - docs と code の差分・未確定な runtime checks を列挙。
+- Validation commands:
+  - `make test`
+  - `cd apps/api && python -m compileall -q app charaname_studio tests`
+  - `make loop-check`
+- Status: done
+
 ## Validation result log
 | UTC timestamp | Command | Exit code | Summary | Rerun |
 |---|---|---:|---|---|
@@ -72,6 +84,12 @@
 | 2026-03-28T09:24:46Z | `cd apps/api && python -m compileall -q app charaname_studio tests` | 0 | `docs/improvement` 更新後の compileall が成功。 | no |
 | 2026-03-28T09:24:52Z | `make loop-check` | 0 | `docs/improvement` 更新後の loop-check が成功。 | no |
 
+| 2026-03-28T18:47:35Z | `make test` | 2 | 依存不足（`httpx`）で `starlette.testclient` が RuntimeError。`environment_or_setup_issue` に分類。 | yes |
+| 2026-03-28T18:47:44Z | `python -m pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt` | 0 | 不足依存（`httpx`, `pytest-cov` など）を導入し環境を修復。 | no |
+| 2026-03-28T18:48:08Z | `make test` | 0 | 調査レポート保存後の再実行で pytest + coverage gate が成功（8 passed, 100%）。 | no |
+| 2026-03-28T18:48:08Z | `cd apps/api && python -m compileall -q app charaname_studio tests` | 0 | compileall が警告なしで成功。 | no |
+| 2026-03-28T18:48:10Z | `make loop-check` | 0 | loop-check が成功。 | no |
+
 ## Defer log
 - なし。
 
@@ -83,8 +101,11 @@
 - このループではドキュメントを非権威と見なし、成熟度を結論づける前にコード/テスト/ワークフロー/スクリプトに対して主張を検証した。
 - `environment_or_setup_issue` 1 件（ローカル依存セット不足）を解消し、停止して修正ポリシーに従って必須検証を再実行。
 
+- 深掘りデューデリジェンス結果を `docs/diagnosis/` に永続化し、要求された #1〜#11 構造で evidence classification を明記。
+- `make test` 失敗（`environment_or_setup_issue`）を stop-and-fix で解消し、required 3 validations を再実行。
+
 ## Current status
-指定された 3 ファイル（`AGENTS.md`, `PLANS.md`, `Plan.md`）の日本語翻訳を完了し、関連改善ログ更新後も必須検証 3 コマンドが成功。
+ユーザー指定の深掘りデューデリジェンス結果を `docs/diagnosis/deep_technical_due_diligence_2026-03-28.md` に保存し、必須検証3コマンドを再実行して成功を確認。
 
 ## Next action
-必要に応じて `docs/improvement/` 配下ドキュメントの言語統一方針（英語/日本語）を次 PR で決定する。
+必要ならこの診断を起点に、次PRで「実業務ユースケース1本の縦切り実装（DB/認証/運用制約込み）」の実装計画へ分解する。

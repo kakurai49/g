@@ -83,3 +83,32 @@
 - Promote judgment: promote
 - Reason:
   - 翻訳作業でもループ規約（検証・ログ）を崩さず適用できることを確認できたため。
+
+## 2026-03-28 — deep due diligence report persistence
+- Trigger / 課題:
+  - ユーザー要求で、深掘り技術調査を実施し、指定フォーマットの結果をリポジトリ内に保存する必要があった。
+- Effective workflow / 有効だった手順:
+  1. まず `apps/api` のコード・テスト・Docker・workflows を一次証跡として読む。
+  2. docs 記載をコードで相互検証し、不一致や未実証箇所を切り分ける。
+  3. #1〜#11 の構造に沿って成熟度・実行可能性・リスクを evidence ラベル付きで記述する。
+  4. required validations を実行し、失敗時は分類→修復→再実行を記録する。
+- Commands used:
+  - `rg --files`
+  - `sed -n ...`
+  - `make test`
+  - `python -m pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt`
+  - `cd apps/api && python -m compileall -q app charaname_studio tests`
+  - `make loop-check`
+- Inputs / Outputs:
+  - Input: FastAPI MVP repository。
+  - Output: `docs/diagnosis/deep_technical_due_diligence_2026-03-28.md` に保存された調査報告。
+- Success criteria:
+  - 指定テンプレートに完全準拠し、主要結論に evidence 区分を付与。
+  - 必須検証3コマンドが最終的に成功し、`Plan.md` ログと整合。
+- Failure modes:
+  - Python依存不足（`httpx`）で `make test` が失敗。
+- Reuse signals:
+  - 監査系タスク（買収DD、引き継ぎ前診断、大規模改修前ベースライン）で再利用可能。
+- Promote judgment: promote
+- Reason:
+  - 調査観点・証跡分類・検証ログ連携まで定型化でき、再現性の高い監査スキルになるため。
